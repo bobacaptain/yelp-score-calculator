@@ -28,39 +28,7 @@
 </head>
 <body>
 
-<h2>Yelp Rating Calculator</h2>
-
-<label>Value (40%)
-  <select id="value">
-    <option value="1">1</option><option value="2">2</option>
-    <option value="3">3</option><option value="4">4</option>
-    <option value="5">5</option>
-  </select>
-</label>
-
-<label>Wait Time & Transparency (25%)
-  <select id="wait">
-    <option value="1">1</option><option value="2">2</option>
-    <option value="3">3</option><option value="4">4</option>
-    <option value="5">5</option>
-  </select>
-</label>
-
-<label>Product Quality (25%)
-  <select id="quality">
-    <option value="1">1</option><option value="2">2</option>
-    <option value="3">3</option><option value="4">4</option>
-    <option value="5">5</option>
-  </select>
-</label>
-
-<label>Experience (10%)
-  <select id="experience">
-    <option value="1">1</option><option value="2">2</option>
-    <option value="3">3</option><option value="4">4</option>
-    <option value="5">5</option>
-  </select>
-</label>
+<div id="categories"></div>
 
 <label>Would I come back?
   <select id="return">
@@ -69,34 +37,57 @@
   </select>
 </label>
 
-<div class="result" id="result">Final Score: —</div>
+<div class="result" id="result"></div>
 
 <script>
-  const inputs = document.querySelectorAll("select");
+const categories = [
+  { id: "value", label: "Value", weight: 40 },
+  { id: "wait", label: "Wait & Transparency", weight: 25 },
+  { id: "quality", label: "Product Quality", weight: 25 },
+  { id: "experience", label: "Experience", weight: 10 }
+];
 
-  inputs.forEach(input => input.addEventListener("change", calculate));
+const container = document.getElementById("categories");
 
-  function calculate() {
-    const value = +document.getElementById("value").value;
-    const wait = +document.getElementById("wait").value;
-    const quality = +document.getElementById("quality").value;
-    const experience = +document.getElementById("experience").value;
-    const comeback = document.getElementById("return").value;
+categories.forEach(cat => {
+  container.innerHTML += `
+    <label>${cat.label} (${cat.weight}%)
+      <select id="${cat.id}">
+        ${[1,2,3,4,5].map(n => `<option>${n}</option>`).join("")}
+      </select>
+    </label>
+  `;
+});
 
-    let score =
-      value * 0.4 +
-      wait * 0.25 +
-      quality * 0.25 +
-      experience * 0.1;
+document.querySelectorAll("select").forEach(el =>
+  el.addEventListener("change", calculate)
+);
 
-    let stars = Math.round(score * 2) / 2;
-
-    if (comeback === "no" && stars > 3) stars = 3;
-
+function calculate() {
+  const totalWeight = categories.reduce((sum, c) => sum + c.weight, 0);
+  if (totalWeight > 100) {
     document.getElementById("result").textContent =
-      `Final Score: ${stars} ⭐`;
+      "⚠️ Weights exceed 100%";
+    return;
   }
+
+  let score = 0;
+  categories.forEach(cat => {
+    const val = +document.getElementById(cat.id).value;
+    score += val * (cat.weight / 100);
+  });
+
+  let stars = Math.round(score * 2) / 2;
+
+  if (document.getElementById("return").value === "no" && stars > 3) {
+    stars = 3;
+  }
+
+  document.getElementById("result").textContent =
+    `Final Score: ${stars} ⭐`;
+}
 </script>
+
 
 </body>
 </html>
