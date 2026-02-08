@@ -15,16 +15,8 @@
       padding: 0 16px;
     }
 
-    h1 {
-      font-size: 1.5rem;
-      margin-bottom: 4px;
-    }
-
-    .subtitle {
-      color: #666;
-      font-size: 0.9rem;
-      margin-bottom: 20px;
-    }
+    h1 { font-size: 1.5rem; margin-bottom: 4px; }
+    .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
 
     .card {
       background: white;
@@ -33,20 +25,10 @@
       box-shadow: 0 6px 18px rgba(0,0,0,0.06);
     }
 
-    .category {
-      border-bottom: 1px solid #eee;
-      padding: 10px 0;
-    }
+    .category { border-bottom: 1px solid #eee; padding: 10px 0; }
+    .category:last-child { border-bottom: none; }
 
-    .category:last-child {
-      border-bottom: none;
-    }
-
-    .row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+    .row { display: flex; gap: 8px; align-items: center; }
 
     input[type="text"] {
       flex: 1;
@@ -72,9 +54,7 @@
       font-size: 0.85rem;
     }
 
-    button:hover {
-      background: #ddd;
-    }
+    button:hover { background: #ddd; }
 
     .controls {
       display: flex;
@@ -83,24 +63,7 @@
       margin-top: 12px;
     }
 
-    .weight-total {
-      font-size: 0.85rem;
-      font-weight: 500;
-    }
-
-    .weight-ok {
-      color: #2e7d32;
-    }
-
-    .weight-warn {
-      color: #b26a00;
-    }
-
-    .divider {
-      height: 1px;
-      background: #eee;
-      margin: 16px 0;
-    }
+    .divider { height: 1px; background: #eee; margin: 16px 0; }
 
     .result {
       text-align: center;
@@ -109,9 +72,16 @@
       font-weight: 600;
     }
 
-    .stars {
-      font-size: 1.5rem;
-      margin-top: 4px;
+    .stars { font-size: 1.5rem; margin-top: 4px; }
+
+    .reviewBox {
+      margin-top: 16px;
+      background: #fafafa;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 0.9rem;
+      white-space: pre-line;
     }
 
     .footer {
@@ -133,14 +103,14 @@
 
   <div class="controls">
     <button onclick="addCategory()">+ Add Category</button>
-    <div id="weightTotal" class="weight-total"></div>
+    <div id="weightTotal"></div>
   </div>
 
   <div class="divider"></div>
 
   <div class="row">
     <span style="flex:1;">Would I come back?</span>
-    <select id="return">
+    <select id="return" onchange="calculate()">
       <option value="yes">Yes</option>
       <option value="no">No</option>
     </select>
@@ -150,6 +120,15 @@
     Final Score: —
     <div class="stars"></div>
   </div>
+
+  <div class="reviewBox" id="reviewText">
+    Generated review will appear here.
+  </div>
+
+  <div class="controls">
+    <button onclick="copyReview()">Copy Review</button>
+  </div>
+
 </div>
 
 <div class="footer">
@@ -163,6 +142,10 @@
     { name: "Product Quality", weight: 25, score: "" },
     { name: "Experience", weight: 10, score: "" }
   ];
+
+  function starText(n) {
+    return n == 1 ? "1 star" : `${n} stars`;
+  }
 
   function render() {
     const container = document.getElementById("categories");
@@ -213,10 +196,22 @@
 
   function updateWeightTotal() {
     const total = categories.reduce((s,c) => s + c.weight, 0);
-    const el = document.getElementById("weightTotal");
+    document.getElementById("weightTotal").textContent =
+      `Total weight: ${total}%`;
+  }
 
-    el.textContent = `Total weight: ${total}%`;
-    el.className = "weight-total " + (total === 100 ? "weight-ok" : "weight-warn");
+  function generateReview(overallStars) {
+    let lines = [];
+
+    categories.forEach(c => {
+      if (c.score) {
+        lines.push(`${c.name}: ${starText(c.score)}`);
+      }
+    });
+
+    lines.push(`Overall: ${starText(overallStars)}`);
+
+    return lines.join("\n");
   }
 
   function calculate() {
@@ -242,6 +237,14 @@
       Final Score: ${stars}
       <div class="stars">${"⭐".repeat(Math.floor(stars))}${stars % 1 ? "½" : ""}</div>
     `;
+
+    document.getElementById("reviewText").textContent =
+      generateReview(stars);
+  }
+
+  function copyReview() {
+    const text = document.getElementById("reviewText").textContent;
+    navigator.clipboard.writeText(text);
   }
 
   render();
